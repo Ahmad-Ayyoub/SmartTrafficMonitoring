@@ -1,27 +1,74 @@
-<!DOCTYPE html>
-<html>
-<head>
+  <!DOCTYPE html>
+  <html>
+  <head>
    <title>
-	SmartTrafficMonitoring
-   </title>
-   <script src="https://www.gstatic.com/firebasejs/5.5.8/firebase.js"></script>
-   <script>
+    SmartTrafficMonitoring
+  </title>
+  <style type="text/css">
+    body {
+      display: flex;
+      min-height: 100vh;
+      width: 100%;
+      padding: 0;
+      margin: 0;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+    }
+
+  </style>
+  <script src="https://www.gstatic.com/firebasejs/5.5.8/firebase.js"></script>
+  <script>
       // Initialize Firebase
       var config = {
-	      apiKey: "AIzaSyDocIMJCv9ZfPq8ozvkeSc5PlC-X5gW5_k",
-	      authDomain: "smarttrafficmonitoring.firebaseapp.com",
-    	      databaseURL: "https://smarttrafficmonitoring.firebaseio.com",
-    	      projectId: "smarttrafficmonitoring",
-    	      storageBucket: "smarttrafficmonitoring.appspot.com",
-              messagingSenderId: "220108272524"
+        apiKey: "AIzaSyDocIMJCv9ZfPq8ozvkeSc5PlC-X5gW5_k",
+        authDomain: "smarttrafficmonitoring.firebaseapp.com",
+        databaseURL: "https://smarttrafficmonitoring.firebaseio.com",
+        projectId: "smarttrafficmonitoring",
+        storageBucket: "smarttrafficmonitoring.appspot.com",
+        messagingSenderId: "220108272524"
       };
       firebase.initializeApp(config);
       console.log(firebase);
+      window.onload = function (){  
+
+      var storage = firebase.storage();
+      var pathReference = storage.ref('yo.mp4');
+
+      // Get the download URL
+      pathReference.getDownloadURL().then(function(url) {
+        var video = document.getElementById("videoSrc");
+        video.src = url;
+      }).catch(function(error) {
+
+      // A full list of error codes is available at
+      // https://firebase.google.com/docs/storage/web/handle-errors
+      switch (error.code) {
+        case 'storage/object-not-found':
+          // File doesn't exist
+          break;
+
+          case 'storage/unauthorized':
+          // User doesn't have permission to access the object
+          break;
+
+          case 'storage/canceled':
+          // User canceled the upload
+          break;
+
+          case 'storage/unknown':
+          // Unknown error occurred, inspect the server response
+          break;
+        }
+      });
+            }
 </script>
 </head>
 <body>
-
-<h1>SmartTrafficMonitoring</h1>
-
+  <video id="videoSrc" width="320" height="240" controls>
+  <source  src="" type="video/mp4">
+  Your browser does not support the video tag.
+  </video>
+  <h1>SmartTrafficMonitoring</h1>
 </body>
 </html>
