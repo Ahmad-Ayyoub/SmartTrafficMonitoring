@@ -14,6 +14,7 @@
       align-items: center;
       justify-content: center;
       flex-direction: column;
+      background-color: lightblue;
     }
 
   </style>
@@ -31,6 +32,12 @@
       firebase.initializeApp(config);
       console.log(firebase);
       window.onload = function (){  
+    
+      var preObject = document.getElementById("json");
+      var dbReferObj = firebase.database().ref().child('intersections');  
+      dbReferObj.on('value', snap => {
+        preObject.innerText = JSON.stringify(snap.val(), null, 3);
+      });
 
       var storage = firebase.storage();
       var pathReference = storage.ref('yo.mp4');
@@ -65,10 +72,12 @@
 </script>
 </head>
 <body>
+  <pre id="json"></pre>
   <video id="videoSrc" width="320" height="240" controls>
   <source  src="" type="video/mp4">
   Your browser does not support the video tag.
   </video>
+  
   <h1>SmartTrafficMonitoring</h1>
 </body>
 </html>
