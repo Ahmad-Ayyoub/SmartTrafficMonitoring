@@ -2,9 +2,11 @@
   <html>
   <head>
    <title>
-    SmartTrafficMonitoring
+    Smart Traffic Monitoring System
   </title>
+  <link href="https://fonts.googleapis.com/css?family=Fredericka+the+Great" rel="stylesheet">
   <style type="text/css">
+
     body {
       display: flex;
       min-height: 100vh;
@@ -14,7 +16,76 @@
       align-items: center;
       justify-content: center;
       flex-direction: column;
-      background-color: lightblue;
+      background: url("intersection.jpg") no-repeat center center fixed;
+      background-size: cover;
+    }
+
+    div.boxes {
+      filter: alpha(opacity=50);
+      opacity: 0.5; 
+      background-color: black;
+      width: 860px; 
+      height: 30%;
+    }
+    #snippet{
+      filter: alpha(opacity=50);
+      opacity: 0.5; 
+      background-color: black;
+    }
+
+    #json {
+      font-family: 'Fredericka the Great', cursive;
+      font-size: 1em;
+      margin-left: 30%;
+      color: white;
+    }
+
+    #videoSrc{
+      margin-left: 250px;
+      margin-bottom: 15px;
+    }
+    code {
+      font-family: 'Fredericka the Great', cursive;
+      font-size: 1em;
+      color: white;
+    }
+
+    #snippet:hover {
+      filter: alpha(opacity=80);
+      opacity: 0.8; 
+      background-color: black;
+    }
+
+    #data:hover {
+      filter: alpha(opacity=80);
+      opacity: 0.8; 
+      background-color: black;
+    }
+
+    #cameras{
+      margin-bottom:  50px;
+    }
+
+    #cameras:hover{
+      filter: alpha(opacity=80);
+      opacity: 0.8; 
+      background-color: black;
+    }
+    #head1,#head2 {
+        margin: 0;
+        font-family: 'Fredericka the Great', cursive;
+        color: white;
+        background-color: black;
+    }
+
+    .headers{
+      margin:0;
+      margin-top: 50px;
+      font-family: 'Fredericka the Great', cursive;
+      color: white;
+      filter: alpha(opacity=80);
+      opacity: 0.8; 
+      background-color: black;
     }
 
   </style>
@@ -72,12 +143,161 @@
 </script>
 </head>
 <body>
-  <pre id="json"></pre>
-  <video id="videoSrc" width="320" height="240" controls>
-  <source  src="" type="video/mp4">
-  Your browser does not support the video tag.
-  </video>
-  
-  <h1>SmartTrafficMonitoring</h1>
+  <h1 id="head1">Smart Traffic Monitorting System</h1>
+  <h3 id="head2">Changing the way the traffic works</h3>
+  <h1 class="headers">Our Intersection Status</h1>
+  <div class = "boxes" id = "data">
+    <pre id="json"></pre>
+  </div>
+  <h1 class="headers">Our Algorithm</h1>
+  <div class = "boxes" id = "snippet">
+    <pre> 
+    <code>
+    void TrafficLogic(int &carCountSouth, int &carCountEast, int carsSouth[], 
+    int carsEast[], int &max, int &maxTime, boolean &leftGreenSouth, boolean 
+    &leftGreenEast, boolean &loopLeftSouth, boolean &loopLeftEast) {
+    time_t seconds = time(NULL)-startTime;
+    
+    time_t testTime = 7;
+    if (seconds > yellowTime){
+        if (!cycle) {
+            greenTimeSN = countMaxTime(carsSouth, max, maxTime, leftGreenSouth,loopLeftSouth);
+            greenTimeWE = countMaxTime(carsEast, max, maxTime, leftGreenEast, loopLeftEast);
+            if (greenTimeSN > 0 || greenTimeWE > 0) {
+                cycle = true;
+            }
+            else {
+                cout << "No cars detected" << endl;
+            }
+        }
+        else {
+            if (!SNRedTrue) {
+                greenTimeWE = countMaxTime(carsEast, max, maxTime, leftGreenEast,loopLeftEast);
+                if (!alreadyPrinted) {
+                    if (leftGreenSouth) {
+                        NSGreenLeft = true;
+                        NSGreenStraight = false;
+                        WEGreenStraight = false;
+                        WEGreenLeft = false;
+                        //system("mosquitto_pub -h raspberrypi -t test -m \"4\"");
+                        cout << "South and North Left are now Green for " << greenTimeSN << " seconds" << endl;
+                        alreadyPrinted = true;
+                    }
+                    else {
+                        NSGreenStraight = true;
+                        NSGreenLeft = false;
+                        WEGreenStraight = false;
+                        WEGreenLeft = false;
+                        //system("mosquitto_pub -h raspberrypi -t test -m \"0\"");
+                        cout << "South and North are now Green for " << greenTimeSN << " seconds" << endl;
+                        loopLeftSouth = true;
+                        alreadyPrinted = true;
+                    }                   
+                }               
+                if (seconds - yellowTime >= greenTimeSN) { // Set SN Red after the time for green (3*maxLaneCount)
+                    if (leftGreenSouth) {
+                        loopLeftSouth = false;
+                        leftGreenSouth = false;
+                        greenTimeSN = countMaxTime(carsSouth, max, maxTime, leftGreenSouth, loopLeftSouth);
+                        
+                        if (greenTimeSN != 0) {
+                            startTime = time(NULL);
+                        }
+                        
+                    }else {
+                        if (greenTimeWE != 0) {
+                            WEGreenStraight = false;
+                            WEGreenLeft = false;
+                            NSGreenLeft = false;
+                            NSGreenStraight = false;
+                            yellowTime = 3;
+                            SNRedTrue = true;
+                            WERedTrue = false;
+                            waitStartTime = time(NULL);
+                            cout << "South and North are now Yellow for " << yellowTime << " seconds" << endl;
+                            //system("mosquitto_pub -h raspberrypi -t test -m \"2\"");
+                            alreadyPrinted = false;
+                        }
+                        else {
+                            yellowTime = 0;
+                            greenTimeSN = countMaxTime(carsSouth, max, maxTime, leftGreenSouth,loopLeftSouth);
+                            startTime = time(NULL);
+                        }
+                    }
+                }
+            }
+            else if (!WERedTrue) {
+                long waitEndTime = time(NULL);
+                if (waitEndTime - waitStartTime >= yellowTime) {
+                    int greenTimeSN2;
+                    greenTimeSN2 = countMaxTime(carsSouth, max, maxTime, leftGreenSouth,loopLeftSouth);
+                    if (!alreadyPrinted) {
+                        if (leftGreenEast) {
+                            NSGreenLeft = false;
+                            NSGreenStraight = false;
+                            WEGreenStraight = false;
+                            WEGreenLeft = true;
+                            //system("mosquitto_pub -h raspberrypi -t test -m \"5\"");
+                            cout << "West and East Left are now Green for " << greenTimeWE << " seconds" << endl;
+                            alreadyPrinted = true;
+                        }
+                        else {
+                            NSGreenStraight = false;
+                            NSGreenLeft = false;
+                            WEGreenStraight = true;
+                            WEGreenLeft = false;
+                            loopLeftEast = true;
+                            cout << "West and East are now green for " << greenTimeWE << " seconds" << endl;
+                            //system("mosquitto_pub -h raspberrypi -t test -m \"1\"");
+                            alreadyPrinted = true;
+                        }
+                    }
+                    if (seconds - yellowTime - greenTimeSN - yellowTime >= greenTimeWE) {
+                        if (leftGreenEast) {
+                            loopLeftEast = false;
+                            leftGreenEast = false;
+                            int greenTimeWEOld = greenTimeWE;
+                            greenTimeWE = countMaxTime(carsEast, max, maxTime, leftGreenEast, loopLeftEast);
+                            if (greenTimeWE != 0) {
+                                startTime += greenTimeWEOld;
+                                waitStartTime = time(NULL);
+                            }
+                        }
+                        else {
+                            cout << "West and East are now yellow for " << yellowTime << " seconds" << endl;
+                            if (seconds - yellowTime - greenTimeSN - yellowTime - greenTimeWE >= 0) {
+                                if (greenTimeSN2 != 0) {
+                                    yellowTime = 3;
+                                    WERedTrue = true;
+                                    SNRedTrue = false;
+                                    cycle = false;
+                                    startTime = time(NULL);
+                                    greenTimeSN = greenTimeSN2;
+                                    alreadyPrinted = false;
+                                }
+                                else {
+                                    yellowTime = 0;
+                                    greenTimeWE = countMaxTime(carsEast, max, maxTime, leftGreenEast, loopLeftEast);
+                                    startTime = time(NULL);
+                                }
+                                
+                            }                           
+                        }                       
+                    }
+                }
+            }
+        }
+    }
+}
+    </code>
+  </pre>
+  </div>
+  <h1 class="headers">Our Live Cameras</h1>
+  <div class = "boxes" id="cameras">
+    <video id="videoSrc" width="320" height="240" controls>
+    <source  src="" type="video/mp4">
+    Your browser does not support the video tag.
+    </video>
+  </div>
 </body>
 </html>
