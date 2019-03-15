@@ -96,6 +96,18 @@
       left: 10px;
       border: 1px solid black;
     }
+    
+    a{
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 15px;
+      font-family: cursive;
+      font-size: 1.5em;
+      color: white;
+
+    }
 
   </style>
   <script src="https://www.gstatic.com/firebasejs/5.5.8/firebase.js"></script>
@@ -305,10 +317,8 @@
   </div>
   <h1 class="headers">Our Live Cameras</h1>
   <div class = "boxes" id="cameras">
-    <video id="videoSrc" width="320" height="240" controls>
-    <source  src="" type="video/mp4">
-    Your browser does not support the video tag.
-    </video>
+   <a href="http://192.168.0.197:88">Camera1</a>
+   <a href="https://192.168.0.189:88">Camera2</a>
   </div>
 </body>
 </html>
